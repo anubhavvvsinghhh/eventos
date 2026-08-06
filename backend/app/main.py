@@ -1,0 +1,26 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.events import router as events_router
+from app.db.database import init_db
+
+app = FastAPI(title="Eventos Backend", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(events_router, prefix="/events", tags=["events"])
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    init_db()
+
+
+@app.get("/")
+def read_root() -> dict:
+    return {"message": "Welcome to the Eventos backend"}

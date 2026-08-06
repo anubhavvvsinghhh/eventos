@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Hero() {
   return (
     <section className="relative overflow-hidden py-16">
@@ -12,12 +14,18 @@ export default function Hero() {
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <button className="inline-flex rounded-full bg-violet-500 px-8 py-4 text-sm font-semibold text-white transition hover:bg-violet-400">
+          <Link
+            href="/find"
+            className="inline-flex rounded-full bg-violet-500 px-8 py-4 text-sm font-semibold text-white transition hover:bg-violet-400"
+          >
             Upload Selfie
-          </button>
-          <button className="inline-flex rounded-full border border-white/10 bg-zinc-950/70 px-8 py-4 text-sm font-semibold text-white transition hover:border-violet-400/40 hover:bg-zinc-900/95">
+          </Link>
+          <Link
+            href="/dashboard"
+            className="inline-flex rounded-full border border-white/10 bg-zinc-950/70 px-8 py-4 text-sm font-semibold text-white transition hover:border-violet-400/40 hover:bg-zinc-900/95"
+          >
             For Organizers
-          </button>
+          </Link>
         </div>
       </div>
     </section>
