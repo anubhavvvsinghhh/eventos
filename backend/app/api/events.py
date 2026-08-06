@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.schemas.event import EventCreate, EventResponse
-from app.schemas.photo import PhotoUploadResponse
+from app.schemas.photo import PhotoResponse, PhotoUploadResponse
 from app.services.events import create_event, get_event_by_id, get_events
-from app.services.photos import upload_event_photos
+from app.services.photos import get_event_photos, upload_event_photos
 from app.db.session import get_db
 
 router = APIRouter()
@@ -27,9 +27,17 @@ def read_event(event_id: int, db: Session = Depends(get_db)) -> EventResponse:
     return event
 
 
-@router.post("/{event_id}/photos", response_model=PhotoUploadResponse)
-def upload_photos(event_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)) -> PhotoUploadResponse:
+@router.get("/{event_id}/photos", response_model=list[PhotoResponse])
+def list_event_photos(event_id: int, db: Session = Depends(get_db)) -> list[PhotoResponse]:
     try:
-        return upload_event_photos(db, event_id, file)
+        return get_event_photos(db, event_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{event_id}/photos", response_model=list[PhotoUploadResponse])
+def upload_photos(event_id: int, files: list[UploadFile] = File(...), db: Session = Depends(get_db)) -> list[PhotoUploadResponse]:
+    try:
+        return upload_event_photos(db, event_id, files)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

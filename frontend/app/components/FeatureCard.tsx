@@ -6,12 +6,12 @@ type Props = {
 
 export default function FeatureCard({ title, desc, icon }: Props) {
   return (
-    <div className="group rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 shadow-[0_18px_80px_rgba(0,0,0,0.25)] transition duration-300 hover:-translate-y-1 hover:border-violet-400/40 hover:bg-zinc-900/80">
-      <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-white/5 text-violet-300">
+    <div className="group rounded-[32px] border border-white/10 bg-slate-950/80 p-8 shadow-[0_18px_80px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-sky-400/30 hover:bg-slate-900/90">
+      <div className="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-sky-500/10 text-sky-300">
         {icon}
       </div>
-      <h3 className="mt-6 text-xl font-semibold text-[#FAFAFA]">{title}</h3>
-      <p className="mt-3 text-base leading-7 text-[#A1A1AA]">{desc}</p>
+      <h3 className="mt-6 text-xl font-semibold text-white">{title}</h3>
+      <p className="mt-3 text-base leading-7 text-slate-300">{desc}</p>
     </div>
   )
 }

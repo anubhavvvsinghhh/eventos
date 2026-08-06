@@ -29,13 +29,15 @@ export default function NewEventPage() {
     setPhotoFiles(files ? Array.from(files) : [])
   }
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('http://localhost:8000/events', {
+      const response = await fetch(`${apiBase}/events`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,98 +64,141 @@ export default function NewEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090B] px-6 py-10 text-white sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-3xl space-y-10">
-        <header className="space-y-4">
-          <p className="text-sm uppercase tracking-[0.35em] text-violet-300">Create Event</p>
-          <h1 className="text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
-            Build your next event with a premium form.
-          </h1>
-          <p className="max-w-2xl text-base leading-7 text-[#A1A1AA]">
-            Enter event details and publish a polished listing. No backend required, this is a styled frontend experience.
-          </p>
-        </header>
+    <div className="min-h-screen animate-pageFade bg-slate-950 px-6 py-10 text-white sm:px-10 lg:px-16">
+      <div className="mx-auto grid max-w-6xl gap-10 xl:grid-cols-[1.4fr_0.8fr]">
+        <div className="space-y-10">
+          <header className="space-y-4">
+            <p className="text-sm uppercase tracking-[0.35em] text-sky-300">Create event</p>
+            <h1 className="text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">
+              Launch your premium event experience.
+            </h1>
+            <p className="max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
+              Give your event a polished gallery flow for guests and organizers. Upload media, set event details, and get ready to match everyone in seconds.
+            </p>
+          </header>
 
-        <form onSubmit={handleSubmit} className="space-y-8 rounded-3xl border border-zinc-800 bg-zinc-900/70 p-8 shadow-[0_30px_100px_rgba(0,0,0,0.35)]">
-          {error ? (
-            <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
-              {error}
+          <form onSubmit={handleSubmit} className="space-y-8 rounded-[40px] border border-white/10 bg-slate-900/80 p-10 shadow-[0_30px_80px_rgba(15,23,42,0.5)]">
+            {error ? (
+              <div className="rounded-[28px] border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+                {error}
+              </div>
+            ) : null}
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <FormField label="Event name">
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(event) => handleChange('name', event.target.value)}
+                  className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-4 text-white outline-none transition focus:border-sky-400/60 focus:ring-2 focus:ring-sky-500/20"
+                  placeholder="Aurora Summit 2026"
+                />
+              </FormField>
+              <FormField label="Venue">
+                <input
+                  type="text"
+                  value={form.venue}
+                  onChange={(event) => handleChange('venue', event.target.value)}
+                  className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-4 text-white outline-none transition focus:border-sky-400/60 focus:ring-2 focus:ring-sky-500/20"
+                  placeholder="Lisbon, Portugal"
+                />
+              </FormField>
             </div>
-          ) : null}
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <FormField label="Event Name">
-              <input
-                type="text"
-                value={form.name}
-                onChange={(event) => handleChange('name', event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-white outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/20"
-                placeholder="Aurora Music Festival"
-              />
+            <div className="grid gap-6 sm:grid-cols-2">
+              <FormField label="Date">
+                <input
+                  type="date"
+                  value={form.date}
+                  onChange={(event) => handleChange('date', event.target.value)}
+                  className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-4 text-white outline-none transition focus:border-sky-400/60 focus:ring-2 focus:ring-sky-500/20"
+                />
+              </FormField>
+              <FormField label="Photographer">
+                <input
+                  type="text"
+                  value={form.photographer}
+                  onChange={(event) => handleChange('photographer', event.target.value)}
+                  className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-4 text-white outline-none transition focus:border-sky-400/60 focus:ring-2 focus:ring-sky-500/20"
+                  placeholder="Aisha Kapoor"
+                />
+              </FormField>
+            </div>
+
+            <FormField label="Photo upload" description={photoFiles.length ? `${photoFiles.length} files selected` : 'JPEG, PNG, or RAW up to 20,000 files'}>
+              <label className="flex cursor-pointer items-center justify-between rounded-3xl border border-white/10 bg-slate-950/80 px-5 py-4 text-sm text-slate-300 transition hover:border-sky-400/40 hover:bg-slate-900/90">
+                <span>{zipFile ? zipFile.name : 'Choose ZIP file or drag photos here'}</span>
+                <input
+                  type="file"
+                  accept=".zip"
+                  onChange={(event) => handleZipChange(event.target.files?.[0] ?? null)}
+                  className="hidden"
+                />
+              </label>
             </FormField>
-            <FormField label="Venue">
-              <input
-                type="text"
-                value={form.venue}
-                onChange={(event) => handleChange('venue', event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-white outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/20"
-                placeholder="Skyline Park"
-              />
+
+            <FormField label="Gallery files">
+              <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-violet-500 px-6 py-4 text-sm font-semibold text-slate-950 transition hover:brightness-110">
+                Add photos
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  multiple
+                  onChange={(event) => handlePhotosChange(event.target.files)}
+                  className="hidden"
+                />
+              </label>
             </FormField>
+
+            <button
+              disabled={isSubmitting}
+              className="w-full rounded-full bg-gradient-to-r from-sky-500 to-violet-500 px-6 py-4 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmitting ? 'Creating event…' : 'Create event'}
+            </button>
+          </form>
+        </div>
+
+        <aside className="space-y-8 rounded-[40px] border border-white/10 bg-slate-900/80 p-8 shadow-[0_30px_80px_rgba(15,23,42,0.5)]">
+          <div className="rounded-[32px] bg-gradient-to-b from-slate-950/90 to-slate-900/60 p-6">
+            <p className="text-sm uppercase tracking-[0.35em] text-sky-300">Live preview</p>
+            <div className="mt-6 space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Event name</p>
+                <p className="mt-2 text-xl font-semibold text-white">{form.name || 'Untitled event'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Venue</p>
+                <p className="mt-2 text-white">{form.venue || 'No venue set'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Date</p>
+                <p className="mt-2 text-white">{form.date || 'No date selected'}</p>
+              </div>
+            </div>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <FormField label="Date">
-              <input
-                type="date"
-                value={form.date}
-                onChange={(event) => handleChange('date', event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-white outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/20"
-              />
-            </FormField>
-            <FormField label="Photographer Name">
-              <input
-                type="text"
-                value={form.photographer}
-                onChange={(event) => handleChange('photographer', event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-white outline-none transition focus:border-violet-400/70 focus:ring-2 focus:ring-violet-500/20"
-                placeholder="Aisha Kapoor"
-              />
-            </FormField>
+          <div className="rounded-[32px] border border-white/10 bg-slate-950/80 p-6 text-sm text-slate-300">
+            <p className="text-sm uppercase tracking-[0.35em] text-sky-300">Quick facts</p>
+            <div className="mt-5 space-y-4">
+              <div className="flex items-center justify-between rounded-3xl bg-slate-900/70 px-4 py-4">
+                <span>Files selected</span>
+                <span className="font-semibold text-white">{photoFiles.length}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-3xl bg-slate-900/70 px-4 py-4">
+                <span>ZIP ready</span>
+                <span className="font-semibold text-white">{zipFile ? 'Yes' : 'No'}</span>
+              </div>
+            </div>
           </div>
 
-          <FormField label="Upload ZIP">
-            <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-zinc-950/80 px-4 py-3 text-sm text-[#A1A1AA] transition hover:border-violet-400/40 hover:bg-zinc-900/80">
-              <span>{zipFile ? zipFile.name : 'Choose a ZIP file...'}</span>
-              <input
-                type="file"
-                accept=".zip"
-                onChange={(event) => handleZipChange(event.target.files?.[0] ?? null)}
-                className="hidden"
-              />
-            </label>
-          </FormField>
-
-          <FormField label="Upload Photos" description={photoFiles.length ? `${photoFiles.length} files selected` : 'Select JPEG or PNG photos'}>
-            <label className="inline-flex cursor-pointer rounded-full bg-violet-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-violet-400">
-              Upload Photos
-              <input
-                type="file"
-                accept="image/png,image/jpeg"
-                multiple
-                onChange={(event) => handlePhotosChange(event.target.files)}
-                className="hidden"
-              />
-            </label>
-          </FormField>
-
-          <button
-            disabled={isSubmitting}
-            className="w-full rounded-full bg-violet-500 px-6 py-4 text-sm font-semibold text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-          >
-            {isSubmitting ? 'Creating...' : 'Create Event'}
-          </button>
-        </form>
+          <div className="rounded-[32px] border border-white/10 bg-slate-950/80 p-6 text-sm text-slate-300">
+            <p className="text-sm uppercase tracking-[0.35em] text-sky-300">Why this matters</p>
+            <p className="mt-4 leading-7 text-slate-300">
+              Events with a strong upload flow and polished metadata are easier to manage, search, and share. This preview helps you keep everything aligned before publish.
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   )

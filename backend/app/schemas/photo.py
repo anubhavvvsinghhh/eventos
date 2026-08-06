@@ -3,12 +3,20 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class PhotoUploadResponse(BaseModel):
+class PhotoBase(BaseModel):
     id: int
     event_id: int
     filename: str
     uploaded_at: datetime
-    message: str
+    url: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class PhotoResponse(PhotoBase):
+    pass
+
+
+class PhotoUploadResponse(PhotoBase):
+    message: str
