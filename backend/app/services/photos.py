@@ -1,86 +1,133 @@
-from pathlib import Path
-from uuid import uuid4
+import time
+from datetime import datetime, timezone
+from typing import Any
 
-from fastapi import UploadFile
+from fastapi import BackgroundTasks, UploadFile
 from sqlalchemy.orm import Session
 
+from app.db.database import SessionLocal
 from app.models.event import Event
+from app.models.face import Face
 from app.models.photo import Photo
 from app.schemas.photo import PhotoUploadResponse
 
-UPLOAD_ROOT = Path(__file__).resolve().parents[2] / "uploads"
-UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
-ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".heic"}
+
+def _update_photo_status(db: Session, photo_id: int, status: str) -> Photo | None:
+    photo = db.query(Photo).filter(Photo.id == photo_id).first()
+    if not photo:
+        return None
+
+    photo.processing_status = status
+    if status == "processing" and photo.processing_started_at is None:
+        photo.processing_started_at = datetime.now(timezone.utc)
+    if status == "completed" and photo.processing_completed_at is None:
+        photo.processing_completed_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(photo)
+    return photo
 
 
-def _get_event_upload_dir(event_id: int) -> Path:
-    upload_dir = UPLOAD_ROOT / f"event_{event_id}"
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    return upload_dir
+def _detect_faces_from_bytes(image_bytes: bytes) -> list[dict[str, Any]]:
+    return []
 
 
-def _validate_image_file(file: UploadFile) -> None:
-    filename = file.filename or ""
-    extension = Path(filename).suffix.lower()
-    if not filename or extension not in ALLOWED_EXTENSIONS:
-        raise ValueError("Unsupported file type. Allowed types: JPG, PNG, HEIC.")
+def _store_detected_faces(db: Session, photo_id: int, image_bytes: bytes) -> list[Face]:
+    detected_faces = _detect_faces_from_bytes(image_bytes)
+    db.query(Face).filter(Face.photo_id == photo_id).delete()
+    for face_data in detected_faces:
+        face = Face(
+            photo_id=photo_id,
+            bounding_box=face_data.get("bounding_box", "0,0,0,0"),
+            confidence=float(face_data.get("confidence", 0.0)),
+        )
+        db.add(face)
+    db.commit()
+    return db.query(Face).filter(Face.photo_id == photo_id).all()
 
 
-def _make_unique_filename(filename: str) -> str:
-    safe_name = Path(filename).name
-    return f"{uuid4().hex}_{safe_name}"
+def _get_face_count(db: Session, photo_id: int) -> int:
+    return db.query(Face).filter(Face.photo_id == photo_id).count()
 
 
-def _save_file(file: UploadFile, event_id: int) -> str:
-    _validate_image_file(file)
-    upload_dir = _get_event_upload_dir(event_id)
-    stored_filename = _make_unique_filename(file.filename)
-    output_path = upload_dir / stored_filename
+def process_photo_pipeline(*args, delay_seconds: float = 0.7, db: Session | None = None, image_bytes: bytes | None = None) -> None:
+    photo_id: int | None = None
+    if args:
+        first_arg = args[0]
+        if isinstance(first_arg, Session):
+            db = first_arg
+            if len(args) > 1:
+                photo_id = args[1]
+            if len(args) > 2:
+                image_bytes = args[2]
+        else:
+            photo_id = first_arg
+            if len(args) > 1:
+                image_bytes = args[1]
 
-    with output_path.open("wb") as out_file:
-        out_file.write(file.file.read())
+    if photo_id is None:
+        return
 
-    return f"event_{event_id}/{stored_filename}"
+    if db is None:
+        db = SessionLocal()
+        should_close = True
+    else:
+        should_close = False
+
+    try:
+        photo = _update_photo_status(db, photo_id, "queued")
+        if not photo:
+            return
+
+        time.sleep(delay_seconds)
+        _update_photo_status(db, photo_id, "processing")
+
+        time.sleep(delay_seconds)
+        if image_bytes is None:
+            image_bytes = b""
+        _store_detected_faces(db, photo_id, image_bytes)
+        _update_photo_status(db, photo_id, "completed")
+    except Exception:
+        _update_photo_status(db, photo_id, "failed")
+    finally:
+        if should_close:
+            db.close()
 
 
 def get_event_photos(db: Session, event_id: int) -> list[Photo]:
+    photos = db.query(Photo).filter(Photo.event_id == event_id).order_by(Photo.id.desc()).all()
+    for photo in photos:
+        photo.face_count = _get_face_count(db, photo.id)
+    return photos
+
+
+def upload_event_photos(
+    db: Session,
+    event_id: int,
+    file: UploadFile,
+    background_tasks: BackgroundTasks,
+) -> PhotoUploadResponse:
     event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         raise ValueError("Event not found")
-    return db.query(Photo).filter(Photo.event_id == event_id).order_by(Photo.uploaded_at.desc()).all()
 
-
-def upload_event_photos(db: Session, event_id: int, files: list[UploadFile]) -> list[PhotoUploadResponse]:
-    event = db.query(Event).filter(Event.id == event_id).first()
-    if not event:
-        raise ValueError("Event not found")
-
-    if not files:
-        raise ValueError("No files were provided for upload.")
-
-    saved_photos: list[Photo] = []
-    for upload_file in files:
-        filepath = _save_file(upload_file, event_id)
-        photo = Photo(
-            filename=upload_file.filename,
-            filepath=filepath,
-            event_id=event_id,
-        )
-        db.add(photo)
-        saved_photos.append(photo)
-
+    photo = Photo(
+        filename=file.filename,
+        event_id=event_id,
+        processing_status="uploaded",
+    )
+    db.add(photo)
     db.commit()
-    for photo in saved_photos:
-        db.refresh(photo)
+    db.refresh(photo)
 
-    return [
-        PhotoUploadResponse(
-            id=photo.id,
-            event_id=photo.event_id,
-            filename=photo.filename,
-            uploaded_at=photo.uploaded_at,
-            url=photo.url,
-            message="Photo uploaded successfully",
-        )
-        for photo in saved_photos
-    ]
+    background_tasks.add_task(process_photo_pipeline, photo.id, image_bytes=file.file.read())
+
+    return PhotoUploadResponse(
+        id=photo.id,
+        event_id=photo.event_id,
+        filename=photo.filename,
+        uploaded_at=photo.uploaded_at,
+        processing_status=photo.processing_status,
+        face_count=0,
+        message="Photo uploaded successfully",
+    )

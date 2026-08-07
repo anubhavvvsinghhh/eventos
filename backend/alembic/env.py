@@ -10,7 +10,7 @@ from alembic import context
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from app.db.base import Base
 from app.db.database import engine
-from app.models import event, photo
+from app.models import event, face, photo
 
 config = context.config
 fileConfig(config.config_file_name)

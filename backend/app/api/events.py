@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.schemas.event import EventCreate, EventResponse
 from app.schemas.photo import PhotoResponse, PhotoUploadResponse
@@ -29,15 +29,17 @@ def read_event(event_id: int, db: Session = Depends(get_db)) -> EventResponse:
 
 @router.get("/{event_id}/photos", response_model=list[PhotoResponse])
 def list_event_photos(event_id: int, db: Session = Depends(get_db)) -> list[PhotoResponse]:
-    try:
-        return get_event_photos(db, event_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return get_event_photos(db, event_id)
 
 
-@router.post("/{event_id}/photos", response_model=list[PhotoUploadResponse])
-def upload_photos(event_id: int, files: list[UploadFile] = File(...), db: Session = Depends(get_db)) -> list[PhotoUploadResponse]:
+@router.post("/{event_id}/photos", response_model=PhotoUploadResponse)
+def upload_photos(
+    event_id: int,
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
+    db: Session = Depends(get_db),
+) -> PhotoUploadResponse:
     try:
-        return upload_event_photos(db, event_id, files)
+        return upload_event_photos(db, event_id, file, background_tasks)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

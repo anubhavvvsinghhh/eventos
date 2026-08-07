@@ -29,7 +29,6 @@ def upgrade() -> None:
         'photos',
         sa.Column('id', sa.Integer(), primary_key=True, nullable=False),
         sa.Column('filename', sa.String(length=255), nullable=False),
-        sa.Column('filepath', sa.String(length=255), nullable=False),
         sa.Column('event_id', sa.Integer(), sa.ForeignKey('events.id', ondelete='CASCADE'), nullable=False),
         sa.Column('uploaded_at', sa.DateTime(timezone=True), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     )

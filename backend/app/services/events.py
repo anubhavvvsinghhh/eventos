@@ -12,7 +12,6 @@ def create_event(db: Session, event_create: EventCreate) -> Event:
         name=event_create.name,
         venue=event_create.venue,
         date=event_create.date,
-        photographer=event_create.photographer,
         description=event_create.description,
     )
     db.add(event)

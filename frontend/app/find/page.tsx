@@ -76,108 +76,74 @@ export default function FindPage() {
   }
 
   return (
-    <div className="min-h-screen animate-pageFade bg-slate-950 px-6 py-10 text-white sm:px-10 lg:px-16">
-      <div className="mx-auto grid max-w-6xl gap-10 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-10">
-          <header className="rounded-[40px] border border-white/10 bg-slate-900/80 p-10 shadow-[0_30px_80px_rgba(15,23,42,0.5)]">
-            <p className="text-sm uppercase tracking-[0.35em] text-sky-300">Find your photos</p>
-            <h1 className="mt-6 text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">
-              Upload one selfie. Get every event photo.
-            </h1>
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
-              Our engine scans official event galleries and returns every image you're in. Fast, private, and ready for guests.
-            </p>
-          </header>
+    <div className="min-h-screen bg-[#09090B] px-6 py-10 text-white sm:px-10 lg:px-16">
+      <div className="mx-auto max-w-5xl space-y-10">
+        <header className="rounded-[32px] border border-white/10 bg-zinc-950/70 p-10 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+          <p className="text-sm uppercase tracking-[0.35em] text-violet-300">Find your event photos</p>
+          <h1 className="mt-4 text-5xl font-semibold tracking-[-0.04em] text-white sm:text-6xl">
+            Find your event photos
+          </h1>
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-[#A1A1AA]">
+            Upload one selfie and we'll find every official photo you're in.
+          </p>
+        </header>
 
-          <form onSubmit={handleSubmit} className="rounded-[40px] border border-white/10 bg-slate-900/80 p-10 shadow-[0_30px_100px_rgba(15,23,42,0.4)]">
-            <div
-              className={`group relative overflow-hidden rounded-[32px] border-2 px-8 py-14 text-center transition ${
-                dragActive ? 'border-sky-400/70 bg-sky-500/10' : 'border-dashed border-white/15 bg-slate-950/80'
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/jpg"
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={handleChange}
-              />
+        <form onSubmit={handleSubmit} className="rounded-[32px] border border-white/10 bg-zinc-900/70 p-10 shadow-[0_30px_100px_rgba(0,0,0,0.3)]">
+          <div
+            className={`group relative overflow-hidden rounded-[28px] border-2 p-10 text-center transition ${
+              dragActive ? 'border-violet-400/80 bg-violet-500/10' : 'border-dashed border-white/15 bg-zinc-950/80'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/jpg"
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              onChange={handleChange}
+            />
 
-              {previewUrl ? (
-                <div className="space-y-6">
-                  <div className="mx-auto h-80 w-full max-w-2xl overflow-hidden rounded-[32px] border border-white/10 bg-black/40">
-                    <img src={previewUrl} alt="Selected selfie preview" className="h-full w-full object-cover" />
-                  </div>
-                  <div className="text-left text-sm text-slate-300">
-                    <p className="font-semibold text-white">Ready to search</p>
-                    <p className="mt-2 truncate text-white">{file?.name}</p>
-                  </div>
+            {previewUrl ? (
+              <div className="space-y-6">
+                <div className="mx-auto h-80 w-full max-w-2xl overflow-hidden rounded-[28px] border border-white/10 bg-black/40">
+                  <img src={previewUrl} alt="Selected selfie preview" className="h-full w-full object-cover" />
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-white/5 text-5xl text-sky-300">
-                    📷
-                  </div>
-                  <div className="space-y-3">
-                    <p className="text-2xl font-semibold text-white">Drop your selfie here</p>
-                    <p className="text-sm uppercase tracking-[0.35em] text-sky-300">or</p>
-                    <p className="mx-auto inline-flex rounded-full border border-white/10 bg-slate-950/80 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-sky-400/40 hover:bg-slate-900/95">
-                      Browse files
-                    </p>
-                  </div>
-                  <div className="space-y-2 text-sm text-slate-400">
-                    <p>Accepts JPG, JPEG, PNG.</p>
-                    <p>Maximum file size 10MB.</p>
-                  </div>
+                <div className="text-left text-sm text-[#A1A1AA]">
+                  <p className="font-semibold text-white">Selected file</p>
+                  <p className="mt-2 truncate text-white">{file?.name}</p>
                 </div>
-              )}
-            </div>
-
-            {error ? <p className="mt-4 text-sm text-rose-400">{error}</p> : null}
-
-            <button
-              type="submit"
-              disabled={!file}
-              className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-sky-500 to-violet-500 px-8 py-4 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-            >
-              Find my photos
-            </button>
-          </form>
-        </div>
-
-        <aside className="space-y-8 rounded-[40px] border border-white/10 bg-slate-950/80 p-8 shadow-[0_30px_80px_rgba(15,23,42,0.5)]">
-          <div className="rounded-[32px] bg-slate-900/80 p-6">
-            <p className="text-sm uppercase tracking-[0.35em] text-sky-300">Why Onera</p>
-            <h2 className="mt-4 text-3xl font-semibold text-white">Search event photos instantly</h2>
-            <p className="mt-4 text-sm leading-7 text-slate-300">
-              Use a single selfie to retrieve the full gallery from event photo archives — no manual guest matching required.
-            </p>
-          </div>
-
-          <div className="grid gap-4">
-            {[
-              { label: 'Fast setup', value: '2 minutes' },
-              { label: 'Secure delivery', value: 'Private guest galleries' },
-              { label: 'Event ready', value: 'Festival & wedding use' },
-            ].map((item) => (
-              <div key={item.label} className="rounded-[28px] border border-white/10 bg-slate-900/80 p-5">
-                <p className="text-sm text-slate-400">{item.label}</p>
-                <p className="mt-3 text-xl font-semibold text-white">{item.value}</p>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-6">
+                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-violet-300/25 bg-violet-500/10 text-5xl text-violet-300">
+                  📷
+                </div>
+                <div className="space-y-3">
+                  <p className="text-2xl font-semibold text-white">Drag your selfie here</p>
+                  <p className="text-sm uppercase tracking-[0.35em] text-violet-300">or</p>
+                  <p className="mx-auto inline-flex cursor-pointer items-center justify-center rounded-full border border-violet-300/20 bg-violet-500/10 px-6 py-3 text-sm font-semibold text-violet-200 transition group-hover:border-violet-400/40 group-hover:bg-violet-500/15">
+                    Choose File
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm text-[#A1A1AA]">
+                  <p>Accept only JPG, JPEG and PNG.</p>
+                  <p>Maximum size 10MB.</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="rounded-[32px] border border-white/10 bg-slate-900/80 p-6 text-sm text-slate-300">
-            <p className="uppercase tracking-[0.35em] text-sky-300">Quick tips</p>
-            <ul className="mt-4 space-y-3">
-              <li>Use a clear front-facing selfie.</li>
-              <li>Bright photos improve matching accuracy.</li>
-              <li>Event galleries sync automatically.</li>
-            </ul>
-          </div>
-        </aside>
+          {error ? <p className="mt-4 text-sm text-rose-400">{error}</p> : null}
+
+          <button
+            type="submit"
+            disabled={!file}
+            className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-violet-500 px-8 py-4 text-sm font-semibold text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:bg-violet-500/40 sm:w-auto"
+          >
+            Find My Photos
+          </button>
+        </form>
       </div>
     </div>
   )
